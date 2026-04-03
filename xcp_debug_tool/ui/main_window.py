@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt
 from ui.file_loader_panel import FileLoaderPanel
 from ui.variable_query_panel import VariableQueryPanel
 from ui.pointer_query_panel import PointerQueryPanel
+from ui.write_panel import WritePanel
 from ui.control_panel import ControlPanel
 from ui.result_display_panel import ResultDisplayPanel
 from ui.log_panel import LogPanel
@@ -46,9 +47,11 @@ class MainWindow(QMainWindow):
         self.query_tabs = QTabWidget()
         self.variable_query = VariableQueryPanel()
         self.pointer_query = PointerQueryPanel()
+        self.write_panel = WritePanel()
         
         self.query_tabs.addTab(self.variable_query, "变量查询")
         self.query_tabs.addTab(self.pointer_query, "指针查询")
+        self.query_tabs.addTab(self.write_panel, "变量写入")
         
         self.control_panel = ControlPanel()
         

@@ -4,6 +4,7 @@ import struct
 XCP_CMD_CONNECT = 0xFF
 XCP_CMD_DISCONNECT = 0xFE
 XCP_CMD_SET_MTA = 0xF6
+XCP_CMD_DOWNLOAD = 0xF0
 XCP_CMD_SHORT_UPLOAD = 0xF4
 XCP_CMD_UPLOAD = 0xF5
 
@@ -30,11 +31,24 @@ class XcpProtocol:
     def build_short_upload(address, size, ext=0x00):
         """
         SHORT_UPLOAD: F4 [Size] [Reserved=0x00] [Extension=0x00] [Address 32-bit 小端]
-        
-        示例：地址 0x11223344, 大小 0x08
-        发送: F4 08 00 00 44 33 22 11   (地址按小端排列)
         """
         return struct.pack('<BBBB', XCP_CMD_SHORT_UPLOAD, size, 0x00, ext) + struct.pack('<I', address)
+
+    @staticmethod
+    def build_set_mta(address, ext=0x00):
+        """
+        SET_MTA: F6 00 00 [Extension] [Address 32-bit 小端]
+        """
+        return struct.pack('<BBBB', XCP_CMD_SET_MTA, 0x00, 0x00, ext) + struct.pack('<I', address)
+
+    @staticmethod
+    def build_download(size, data_bytes):
+        """
+        DOWNLOAD: F0 [Size] [Data...]
+        注意：单帧最多 6 字节数据 (对 DLC=8 的限制)
+        """
+        header = struct.pack('<BB', XCP_CMD_DOWNLOAD, size)
+        return header + data_bytes[:size]
 
     @staticmethod
     def parse_response(response_bytes):

@@ -94,6 +94,75 @@ class XcpSession:
         logger.info(f"[XcpSession] 读取完成: {len(all_data)} 字节 -> {all_data.hex()}")
         return all_data
 
+    def write_memory(self, address: int, data_bytes: bytes):
+        """
+        通过 SET_MTA + DOWNLOAD 写入 ECU 内存。
+        
+        由于 DLC=8 的限制，每个 DOWNLOAD 最多携带 6 字节数据。
+        本函数自动分块并执行重试。
+        """
+        if not self.is_connected:
+            logger.warning("[XcpSession] XCP 尚未 Connect!")
+            return False
+
+        size = len(data_bytes)
+        remaining = size
+        current_addr = address
+        offset = 0
+
+        logger.info(f"[XcpSession] 开始写入: Addr={hex(address)} TotalSize={size}, 数据={data_bytes.hex()}")
+
+        while remaining > 0:
+            # DOWNLOAD 每次最多 6 字节 (1B CMD + 1B Size + 6B Data = 8B)
+            chunk_size = min(remaining, 6)
+            chunk_data = data_bytes[offset:offset+chunk_size]
+            
+            success = self._write_chunk_with_retry(current_addr, chunk_size, chunk_data)
+            if not success:
+                logger.error(f"[XcpSession] 分块写入失败 (重试耗尽): Addr={hex(current_addr)}")
+                self.is_connected = False
+                return False
+            
+            current_addr += chunk_size
+            offset += chunk_size
+            remaining -= chunk_size
+            
+            if remaining > 0:
+                time.sleep(self.INTER_CHUNK_DELAY)
+
+        logger.info(f"[XcpSession] 写入完成: {size} 字节。")
+        return True
+
+    def _write_chunk_with_retry(self, addr: int, chunk_size: int, data_bytes: bytes):
+        """
+        带重试的单 chunk 写入 (SET_MTA + DOWNLOAD)。
+        """
+        for attempt in range(1, self.MAX_RETRY + 1):
+            try:
+                # 1. SET_MTA
+                set_mta_req = XcpProtocol.build_set_mta(addr)
+                res_mta = self.transport.send_xcp_request(set_mta_req)
+                if not (res_mta and res_mta[0] == 0xFF):
+                    logger.warning(f"[XcpSession]   SET_MTA 失败: Addr={hex(addr)} (尝试 {attempt})")
+                    time.sleep(0.010)
+                    continue
+
+                # 2. DOWNLOAD
+                download_req = XcpProtocol.build_download(chunk_size, data_bytes)
+                res_down = self.transport.send_xcp_request(download_req)
+                
+                if res_down and res_down[0] == 0xFF:
+                    logger.debug(f"[XcpSession]   <- 块写入成功: Addr={hex(addr)} Size={chunk_size}")
+                    return True
+                else:
+                    logger.warning(f"[XcpSession]   DOWNLOAD 失败: Addr={hex(addr)} (尝试 {attempt})")
+            except Exception as e:
+                logger.error(f"[XcpSession]   写入异常 (尝试 {attempt}): {e}")
+            
+            time.sleep(0.020) # 失败后微等待
+            
+        return False
+
     def _read_chunk_with_retry(self, addr: int, chunk_size: int):
         """
         带重试的单 chunk 读取。

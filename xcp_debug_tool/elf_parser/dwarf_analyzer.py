@@ -77,8 +77,9 @@ class DwarfAnalyzer:
         
         # 计算偏移量与嵌套类型
         for sub_name in parts[1:]:
-            if not current_info or current_info.get('class') not in ('structure_type', 'union_type'):
-                logger.error(f"[DwarfAnalyzer] {sub_name} 不是一个结构体或联合体。")
+            # 如果是 typedef 或 qualifier，其 TypeResolver.resolve_type 已经通过继承把 members 穿透上来了
+            if not current_info or not current_info.get('members'):
+                logger.error(f"[DwarfAnalyzer] {sub_name} 的父节点不是一个结构体或联合体 (或者没有子成员)。")
                 return None
                 
             found = False

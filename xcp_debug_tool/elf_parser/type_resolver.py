@@ -42,14 +42,20 @@ class TypeResolver:
         if tag == 'DW_TAG_base_type':
             type_info['class'] = 'base_type'
             
-        elif tag == 'DW_TAG_typedef':
-            type_info['class'] = 'typedef'
+        elif tag in ('DW_TAG_typedef', 'DW_TAG_const_type', 'DW_TAG_volatile_type', 'DW_TAG_restrict_type'):
+            type_info['class'] = 'typedef' if tag == 'DW_TAG_typedef' else 'qualifier'
             # 追溯底层的 type
             if 'DW_AT_type' in type_die.attributes:
                 underlying_die = type_die.get_DIE_from_attribute('DW_AT_type')
                 underlying_info = self.resolve_type(underlying_die)
                 type_info['size'] = underlying_info['size']
                 type_info['underlying'] = underlying_info
+                # 继承成员信息以便穿透访问
+                if 'members' in underlying_info:
+                    type_info['members'] = underlying_info['members']
+            else:
+                # void* 或类似的基础类型指针的底层可能是空
+                type_info['size'] = 0
                 
         elif tag in ('DW_TAG_structure_type', 'DW_TAG_union_type'):
             type_info['class'] = 'structure_type' if tag == 'DW_TAG_structure_type' else 'union_type'

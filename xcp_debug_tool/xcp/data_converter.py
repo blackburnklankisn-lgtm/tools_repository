@@ -41,7 +41,7 @@ class DataConverter:
         t_name = type_info.get('name', '').lower()
         size = type_info.get('size', len(data))
 
-        if t_class == 'typedef':
+        if t_class in ('typedef', 'qualifier'):
             underlying = type_info.get('underlying')
             if underlying:
                 return cls._parse_type(data, underlying)
@@ -111,12 +111,12 @@ class DataConverter:
 
     @classmethod
     def is_struct_type(cls, type_info: dict) -> bool:
-        """判断是否为结构体类型（考虑 typedef 嵌套）"""
+        """判断是否为结构体类型（考虑 typedef 或 qualifier 嵌套）"""
         if not type_info: return False
         t_class = type_info.get('class')
         if t_class == 'structure_type':
             return True
-        if t_class == 'typedef':
+        if t_class in ('typedef', 'qualifier'):
             return cls.is_struct_type(type_info.get('underlying', {}))
         return False
 

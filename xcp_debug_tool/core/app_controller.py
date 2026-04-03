@@ -53,6 +53,10 @@ class AppController:
         # 日志区信号
         self.view.log_panel.btn_export.clicked.connect(self.on_export_log)
 
+        # 写入面板信号
+        self.view.write_panel.resolve_var_signal.connect(self.on_resolve_write_var)
+        self.view.write_panel.execute_write_signal.connect(self.on_write_memory)
+
     def _create_ui_log_handler(self):
         """创建一个 logging.Handler 用于将日志发送给 UI 的 LogPanel"""
         import logging
@@ -312,6 +316,40 @@ class AppController:
                 logger.error(f"导出日志失败: {e}")
                 QMessageBox.warning(self.view, "错误", f"保存文件失败: {e}")
 
+    def on_resolve_write_var(self, var_name):
+        """解析写入面板中的变量名"""
+        if not self.dwarf_analyzer:
+            QMessageBox.warning(self.view, "错误", "未加载 ELF/DWARF 信息。")
+            self.view.write_panel.update_resolution_result(False)
+            return
+            
+        info = self.dwarf_analyzer.find_variable(var_name)
+        if info:
+            self.view.write_panel.update_resolution_result(True, info)
+        else:
+            self.view.write_panel.update_resolution_result(False)
+
+    def on_write_memory(self, write_info):
+        """执行 XCP DOWNLOAD 写入操作"""
+        # 1. 确保已连接
+        if not self._ensure_xcp_connected():
+            self.view.write_panel.set_write_status(False, "XCP 未连接")
+            return
+            
+        addr = write_info['addr']
+        data = write_info['data']
+        
+        logger.info(f"[AppController] 执行写入请求: Addr={hex(addr)}, Len={len(data)}")
+        
+        # 2. 调用 Session 写入
+        success = self.xcp_session.write_memory(addr, data)
+        
+        if success:
+            self.view.write_panel.set_write_status(True, "写入成功！")
+            logger.info(f"[AppController] 写入完成: Addr={hex(addr)}")
+        else:
+            self.view.write_panel.set_write_status(False, "写入失败 (ECU 拒绝或超时)")
+            logger.error(f"[AppController] 写入失败: Addr={hex(addr)}")
 
     def on_scheduled_data_received(self, results, elapsed_ms):
         """收到调度器返回的数据集合，更新 UI 报表"""
