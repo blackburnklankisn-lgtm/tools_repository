@@ -11,5 +11,7 @@
     <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB5" comment="响应字节5" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
     <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB6" comment="响应字节6" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
     <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB7" comment="响应字节7" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="ReqSeqNo" comment="请求序列号(Python写)" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="65535" maxValuePhys="65535"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspSeqNo" comment="响应序列号(CAPL回写)" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="65535" maxValuePhys="65535"/>
   </namespace>
 </systemvariables>

@@ -32,8 +32,29 @@ class CANoeManager:
     def is_running(self):
         """检查 Measurement 是否正在运行"""
         if self.measurement:
-            return self.measurement.Running
+            try:
+                return self.measurement.Running
+            except:
+                return False
         return False
+
+    def stop_measurement(self):
+        """停止 Measurement 并等待停止"""
+        if self.measurement:
+            try:
+                if self.measurement.Running:
+                    logger.info("[CANoeManager] 正在停止 Measurement...")
+                    self.measurement.Stop()
+                    t0 = time.time()
+                    while self.measurement.Running:
+                        if time.time() - t0 > 5.0:
+                            logger.warning("[CANoeManager] 等待停止超时!")
+                            break
+                        time.sleep(0.5)
+                    logger.info("[CANoeManager] Measurement 已停止。")
+            except Exception as e:
+                logger.error(f"[CANoeManager] 停止 Measurement 失败: {e}")
+        return True
 
     def start_measurement_and_bindCAPL(self, capl_func_names, timeout=10.0):
         """启动 Measurement 并在 OnInit 事件中绑定 CAPL 函数。"""

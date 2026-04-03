@@ -11,7 +11,7 @@ class VariableQueryPanel(QGroupBox):
         self.setLayout(layout)
         
         # 减少行数到 5 行，或者根据需要调整
-        for i in range(8):
+        for i in range(5):
             lbl = QLabel(f"变量 {i+1}:")
             edit = QLineEdit()
             edit.setPlaceholderText("例如: my_struct.field1")

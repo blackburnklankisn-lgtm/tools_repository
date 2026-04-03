@@ -67,7 +67,7 @@ class DataConverter:
             except Exception as e:
                 return f"Err:{e}"
 
-        if t_class == 'structure_type':
+        if cls.is_struct_type(type_info):
             result = []
             members = type_info.get('members', [])
             for m in members:
@@ -83,7 +83,7 @@ class DataConverter:
                 m_val = cls._parse_type(m_data, m_type)
                 result.append(f"{m.get('name')}: {m_val}")
             
-            return "{" + ", ".join(result) + "}"
+            return "{\n  " + ",\n  ".join(result) + "\n}"
 
         if t_class == 'array_type':
             elem_type = type_info.get('element_type')
@@ -100,13 +100,25 @@ class DataConverter:
                 e_data = data[offset : offset+e_size]
                 arr_vals.append(str(cls._parse_type(e_data, elem_type)))
                 
-            rep = "[" + ", ".join(arr_vals)
+            connector = ",\n  " if len(arr_vals) > 1 else ", "
+            rep = "[\n  " + connector.join(arr_vals)
             if size // e_size > 10:
-                rep += ", ..."
-            rep += "]"
+                rep += ",\n  ..."
+            rep += "\n]"
             return rep
 
         return cls._parse_generic(data)
+
+    @classmethod
+    def is_struct_type(cls, type_info: dict) -> bool:
+        """判断是否为结构体类型（考虑 typedef 嵌套）"""
+        if not type_info: return False
+        t_class = type_info.get('class')
+        if t_class == 'structure_type':
+            return True
+        if t_class == 'typedef':
+            return cls.is_struct_type(type_info.get('underlying', {}))
+        return False
 
     @classmethod
     def _parse_generic(cls, data: bytes):

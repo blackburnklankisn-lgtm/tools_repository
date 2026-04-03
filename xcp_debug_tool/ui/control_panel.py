@@ -19,13 +19,10 @@ class ControlPanel(QGroupBox):
         btn_layout.addWidget(self.btn_timer_query)
         layout.addLayout(btn_layout)
         
-        # 轮询参数
-        params_layout = QHBoxLayout()
-        params_layout.addWidget(QLabel("轮询周期:"))
-        self.combo_period = QComboBox()
-        self.combo_period.addItems(["20 ms", "50 ms", "100 ms", "500 ms", "1000 ms"])
-        params_layout.addWidget(self.combo_period)
-        layout.addLayout(params_layout)
+        # 轮询参数 (改为自适应模式，隐藏周期设置)
+        self.lbl_mode = QLabel("运行模式: 全速自适应 (连读)")
+        self.lbl_mode.setStyleSheet("color: #008000; font-weight: bold;")
+        layout.addWidget(self.lbl_mode)
         
         # 条件触发配置
         cond_layout = QVBoxLayout()
@@ -41,3 +38,8 @@ class ControlPanel(QGroupBox):
         
         cond_layout.addLayout(delay_layout)
         layout.addLayout(cond_layout)
+        
+        # 实时频率监控
+        self.lbl_actual_cycle = QLabel("实际采样耗时: -- ms")
+        self.lbl_actual_cycle.setStyleSheet("color: #666; font-size: 11px;")
+        layout.addWidget(self.lbl_actual_cycle)

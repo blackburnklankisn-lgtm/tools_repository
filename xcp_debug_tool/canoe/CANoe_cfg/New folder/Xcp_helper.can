@@ -1,11 +1,12 @@
 /*@!Encoding:936*/
 /*
- * XCP Debug Helper CAPL v4.0 (Proven 8-Byte Pipeline)
+ * XCP Debug Helper CAPL v4.1 (SeqNo Pipeline)
  * 兼容 CANoe 16 SP7
  *
  * 架构：
  *   - 发送: Python 调用 export 函数 XCP_SendCmd
  *   - 接收: 写入 @sysvar::XCP::RspB0~B7 供 Python 读取
+ *   - 抗竞态: SeqNo 机制 - Python 写 ReqSeqNo, CAPL 回写 RspSeqNo
  *   - 大变量: Python 端自动拆分为多次 SHORT_UPLOAD (每次 <=4 字节)
  */
 
@@ -19,14 +20,17 @@ on start
   xcpRequest.FDF = 1;
   xcpRequest.BRS = 0;
 
-  @sysvar::XCP::HasData = 0;
-  @sysvar::XCP::RspLen  = 0;
+  @sysvar::XCP::HasData  = 0;
+  @sysvar::XCP::RspLen   = 0;
+  @sysvar::XCP::ReqSeqNo = 0;
+  @sysvar::XCP::RspSeqNo = 0;
 
-  write("XCP Debug Helper CAPL v4.0 started! (CAN FD + SysVar Mode)");
+  write("XCP Debug Helper CAPL v4.1 started! (CAN FD + SysVar + SeqNo)");
 }
 
 on message 0x6D1
 {
+  // 1. 先写数据
   @sysvar::XCP::RspB0 = this.byte(0);
   @sysvar::XCP::RspB1 = this.byte(1);
   @sysvar::XCP::RspB2 = this.byte(2);
@@ -36,10 +40,17 @@ on message 0x6D1
   @sysvar::XCP::RspB6 = this.byte(6);
   @sysvar::XCP::RspB7 = this.byte(7);
 
-  @sysvar::XCP::RspLen  = this.dlc;
+  // 2. 写长度
+  @sysvar::XCP::RspLen = this.dlc;
+
+  // 3. 回写序列号 (复制当前请求的 SeqNo)
+  @sysvar::XCP::RspSeqNo = @sysvar::XCP::ReqSeqNo;
+
+  // 4. 最后置数据就绪标志
   @sysvar::XCP::HasData = 1;
 
-  write("XCP Rsp: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
+  write("XCP Rsp [Seq=%d]: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
+        @sysvar::XCP::RspSeqNo,
         this.byte(0), this.byte(1), this.byte(2), this.byte(3),
         this.byte(4), this.byte(5), this.byte(6), this.byte(7),
         this.dlc);
@@ -61,8 +72,8 @@ export long XCP_SendCmd (long len, long b0, long b1, long b2, long b3, long b4, 
 
   output(xcpRequest);
 
-  write("XCP Req: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
-        b0, b1, b2, b3, b4, b5, b6, b7, len);
+  write("XCP Req [Seq=%d]: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
+        @sysvar::XCP::ReqSeqNo, b0, b1, b2, b3, b4, b5, b6, b7, len);
 
   return 0;
 }
