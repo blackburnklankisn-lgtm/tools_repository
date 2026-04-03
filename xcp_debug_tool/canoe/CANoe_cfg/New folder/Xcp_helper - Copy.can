@@ -1,0 +1,89 @@
+/*@!Encoding:936*/
+/*
+ * XCP Debug Helper CAPL v4.0
+ * 兼容 CANoe 16 SP7
+ *
+ * 架构：
+ *   - 发送: Python 调用 export 函数 XCP_SendCmd (不依赖返回值)
+ *   - 接收: CAPL 写入 System Variables (@sysvar::XCP::*)
+ *           Python 通过 COM 直接读取 System Variables
+ *
+ * 前置条件：
+ *   需要先在 CANoe 中导入 xcp_debug.svar 文件
+ *   (Environment > System Variables > 右键 > Load)
+ */
+
+variables
+{
+  message 0x651 xcpRequest;
+}
+
+on start
+{
+  /* 初始化为 CAN FD 模式 */
+  xcpRequest.FDF = 1;
+  xcpRequest.BRS = 0;
+
+  /* 清除系统变量 */
+  @sysvar::XCP::HasData = 0;
+  @sysvar::XCP::RspLen  = 0;
+
+  write("XCP Debug Helper CAPL v4.0 started! (CAN FD + SysVar Mode)");
+}
+
+/*
+ * 监听 ECU 的 XCP 响应报文 (ID: 0x6D1)
+ * 收到响应后，将数据写入系统变量供 Python 读取
+ */
+on message 0x6D1
+{
+  /* 写入各字节到系统变量 */
+  @sysvar::XCP::RspB0 = this.byte(0);
+  @sysvar::XCP::RspB1 = this.byte(1);
+  @sysvar::XCP::RspB2 = this.byte(2);
+  @sysvar::XCP::RspB3 = this.byte(3);
+  @sysvar::XCP::RspB4 = this.byte(4);
+  @sysvar::XCP::RspB5 = this.byte(5);
+  @sysvar::XCP::RspB6 = this.byte(6);
+  @sysvar::XCP::RspB7 = this.byte(7);
+
+  @sysvar::XCP::RspLen  = this.dlc;
+  @sysvar::XCP::HasData = 1;
+
+  write("XCP Rsp: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
+        this.byte(0), this.byte(1), this.byte(2), this.byte(3),
+        this.byte(4), this.byte(5), this.byte(6), this.byte(7),
+        this.dlc);
+}
+
+/* ============================================================
+ *  发送函数 (仅用于发送，不依赖返回值)
+ * ============================================================ */
+
+/*
+ * 发送 CAN FD XCP 请求帧
+ * 注意：Python 端不使用此函数的返回值
+ */
+export long XCP_SendCmd (long len, long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7)
+{
+  /* 先清除上一次响应 */
+  @sysvar::XCP::HasData = 0;
+
+  xcpRequest.dlc = len;
+  xcpRequest.byte(0) = b0;
+  xcpRequest.byte(1) = b1;
+  xcpRequest.byte(2) = b2;
+  xcpRequest.byte(3) = b3;
+  xcpRequest.byte(4) = b4;
+  xcpRequest.byte(5) = b5;
+  xcpRequest.byte(6) = b6;
+  xcpRequest.byte(7) = b7;
+
+  output(xcpRequest);
+
+  write("XCP Req: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
+        b0, b1, b2, b3, b4, b5, b6, b7, len);
+
+  return 0;
+}
+

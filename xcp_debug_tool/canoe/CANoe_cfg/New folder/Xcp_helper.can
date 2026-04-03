@@ -1,0 +1,69 @@
+/*@!Encoding:936*/
+/*
+ * XCP Debug Helper CAPL v4.0 (Proven 8-Byte Pipeline)
+ * 兼容 CANoe 16 SP7
+ *
+ * 架构：
+ *   - 发送: Python 调用 export 函数 XCP_SendCmd
+ *   - 接收: 写入 @sysvar::XCP::RspB0~B7 供 Python 读取
+ *   - 大变量: Python 端自动拆分为多次 SHORT_UPLOAD (每次 <=4 字节)
+ */
+
+variables
+{
+  message 0x651 xcpRequest;
+}
+
+on start
+{
+  xcpRequest.FDF = 1;
+  xcpRequest.BRS = 0;
+
+  @sysvar::XCP::HasData = 0;
+  @sysvar::XCP::RspLen  = 0;
+
+  write("XCP Debug Helper CAPL v4.0 started! (CAN FD + SysVar Mode)");
+}
+
+on message 0x6D1
+{
+  @sysvar::XCP::RspB0 = this.byte(0);
+  @sysvar::XCP::RspB1 = this.byte(1);
+  @sysvar::XCP::RspB2 = this.byte(2);
+  @sysvar::XCP::RspB3 = this.byte(3);
+  @sysvar::XCP::RspB4 = this.byte(4);
+  @sysvar::XCP::RspB5 = this.byte(5);
+  @sysvar::XCP::RspB6 = this.byte(6);
+  @sysvar::XCP::RspB7 = this.byte(7);
+
+  @sysvar::XCP::RspLen  = this.dlc;
+  @sysvar::XCP::HasData = 1;
+
+  write("XCP Rsp: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
+        this.byte(0), this.byte(1), this.byte(2), this.byte(3),
+        this.byte(4), this.byte(5), this.byte(6), this.byte(7),
+        this.dlc);
+}
+
+export long XCP_SendCmd (long len, long b0, long b1, long b2, long b3, long b4, long b5, long b6, long b7)
+{
+  @sysvar::XCP::HasData = 0;
+
+  xcpRequest.dlc = len;
+  xcpRequest.byte(0) = b0;
+  xcpRequest.byte(1) = b1;
+  xcpRequest.byte(2) = b2;
+  xcpRequest.byte(3) = b3;
+  xcpRequest.byte(4) = b4;
+  xcpRequest.byte(5) = b5;
+  xcpRequest.byte(6) = b6;
+  xcpRequest.byte(7) = b7;
+
+  output(xcpRequest);
+
+  write("XCP Req: %02X %02X %02X %02X %02X %02X %02X %02X (DLC=%d)",
+        b0, b1, b2, b3, b4, b5, b6, b7, len);
+
+  return 0;
+}
+

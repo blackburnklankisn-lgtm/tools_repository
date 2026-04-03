@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<systemvariables version="4">
+  <namespace name="XCP" comment="XCP Debug Tool - Response Data Bridge">
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="HasData" comment="1=有新响应" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="1" maxValuePhys="1"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspLen" comment="响应实际字节数" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="64" maxValuePhys="64"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspData" comment="完整响应数据 (最大 64 字节)" type="data" />
+  </namespace>
+</systemvariables>

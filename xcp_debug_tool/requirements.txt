@@ -1,0 +1,4 @@
+PyQt5>=5.15.0
+pyelftools>=0.29
+pywin32>=306
+pytest>=7.0.0

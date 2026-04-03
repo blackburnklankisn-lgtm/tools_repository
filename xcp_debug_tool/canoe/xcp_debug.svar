@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<systemvariables version="4">
+  <namespace name="XCP" comment="XCP Debug Tool - Response Data Bridge">
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="HasData" comment="1=有新响应" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="1" maxValuePhys="1"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspLen" comment="响应DLC" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="64" maxValuePhys="64"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB0" comment="响应字节0" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB1" comment="响应字节1" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB2" comment="响应字节2" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB3" comment="响应字节3" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB4" comment="响应字节4" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB5" comment="响应字节5" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB6" comment="响应字节6" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+    <variable anlyzLocal="2" readOnly="false" valueSequence="false" unit="" name="RspB7" comment="响应字节7" bitcount="32" isSigned="true" encoding="65001" type="int" startValue="0" minValue="0" minValuePhys="0" maxValue="255" maxValuePhys="255"/>
+  </namespace>
+</systemvariables>

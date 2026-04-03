@@ -1,0 +1,34 @@
+﻿/*@!Encoding:65001*/
+variables
+{
+   message 0x651 msgToSend;
+   timer t1;
+   byte sendbuffer[2];
+}
+on start
+{
+ write("CAPL: start!");
+}
+
+// 新增的简单测试函数
+void testFunction()
+{
+  write("CAPL: testFunction called successfully from Python!");
+}
+
+void sendCANMessage(long id, byte data[])
+{
+   msgToSend.ID = id;
+   msgToSend.DLC = 2;
+   msgToSend.byte(0) = data[0];
+   msgToSend.byte(1) = data[1];
+   output(msgToSend);
+   write("CAPL: Sent message ID=0x%x", id);
+}
+
+on timer t1
+{
+   sendbuffer[0] = 0xFF;
+   sendbuffer[1] = 0X0;
+   sendCANMessage(0x651,sendbuffer);
+}
